@@ -12,13 +12,11 @@ fn parse(line: &str) -> Result<(u64, Vec<u64>), ParseIntError> {
 fn part_1(wanted: u64, nr: &Vec<u64>, cur_val: u64, i: usize) -> Option<u64> {
     if cur_val == wanted && i == nr.len() { return Some(wanted); }
     if i >= nr.len() || cur_val > wanted { return None; }
-    if let Some(x) = part_1(wanted, nr, cur_val + nr[i], i + 1) {
+    if let Some(x) = part_1(wanted, nr, cur_val * nr[i], i + 1) {
         return Some(x);
     }
-    if i > 0 {
-        if let Some(x) = part_1(wanted, nr, cur_val * nr[i], i + 1) {
-            return Some(x);
-        }
+    if let Some(x) = part_1(wanted, nr, cur_val + nr[i], i + 1) {
+        return Some(x);
     }
     None
 }
@@ -26,18 +24,15 @@ fn part_1(wanted: u64, nr: &Vec<u64>, cur_val: u64, i: usize) -> Option<u64> {
 fn part_2(wanted: u64, nr: &Vec<u64>, cur_val: u64, i: usize) -> Option<u64> {
     if cur_val == wanted && i == nr.len() { return Some(wanted); }
     if i >= nr.len() || cur_val > wanted { return None; }
+    if let Some(x) = part_2(wanted, nr, cur_val * nr[i], i + 1) {
+        return Some(x);
+    }
     if let Some(x) = part_2(wanted, nr, cur_val + nr[i], i + 1) {
         return Some(x);
     }
-    if i > 0 {
-        if let Some(x) = part_2(wanted, nr, cur_val * nr[i], i + 1) {
+    if let Ok(concated) = format!("{}{}", cur_val, nr[i]).parse::<u64>() {
+        if let Some(x) = part_2(wanted, nr, concated, i + 1) {
             return Some(x);
-        }
-        let concated = format!("{}{}", cur_val, nr[i]).parse::<u64>();
-        if concated.is_ok() {
-            if let Some(x) = part_2(wanted, nr, concated.unwrap(), i + 1) {
-                return Some(x);
-            }
         }
     }
     None
@@ -50,12 +45,12 @@ fn main() {
     let solution: u64 = if !args.second {
         args.input.lines().filter_map(|l|{
             let (wanted, nr) = parse(l).unwrap();
-            part_1(wanted, &nr, 0, 0)
+            part_1(wanted, &nr, nr[0], 1)
         }).sum()
     } else {
         args.input.lines().filter_map(|l|{
             let (wanted, nr) = parse(l).unwrap();
-            part_2(wanted, &nr, 0, 0)
+            part_2(wanted, &nr, nr[0], 1)
         }).sum()
     };
 
