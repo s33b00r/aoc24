@@ -9,33 +9,17 @@ fn parse(line: &str) -> Result<(u64, Vec<u64>), ParseIntError> {
     Ok((wanted.parse()?, nr?))
 }
 
-fn part_1(wanted: u64, nr: &Vec<u64>, cur_val: u64, i: usize) -> Option<u64> {
-    if cur_val == wanted && i == nr.len() { return Some(wanted); }
-    if i >= nr.len() || cur_val > wanted { return None; }
-    if let Some(x) = part_1(wanted, nr, cur_val * nr[i], i + 1) {
-        return Some(x);
-    }
-    if let Some(x) = part_1(wanted, nr, cur_val + nr[i], i + 1) {
-        return Some(x);
-    }
-    None
+fn concat(left: u64, right: u64) -> Option<u64> {
+    let steps = ((right as f64).log10()) as u32;
+    left.checked_mul(10u64.pow(steps+1))?.checked_add(right)
 }
 
-fn part_2(wanted: u64, nr: &Vec<u64>, cur_val: u64, i: usize) -> Option<u64> {
-    if cur_val == wanted && i == nr.len() { return Some(wanted); }
-    if i >= nr.len() || cur_val > wanted { return None; }
-    if let Some(x) = part_2(wanted, nr, cur_val * nr[i], i + 1) {
-        return Some(x);
-    }
-    if let Some(x) = part_2(wanted, nr, cur_val + nr[i], i + 1) {
-        return Some(x);
-    }
-    if let Ok(concated) = format!("{}{}", cur_val, nr[i]).parse::<u64>() {
-        if let Some(x) = part_2(wanted, nr, concated, i + 1) {
-            return Some(x);
-        }
-    }
-    None
+fn check(wanted: u64, nr: &Vec<u64>, cur_val: u64, i: usize, ops: &Vec<Box<dyn Fn(u64, u64) -> Option<u64>>>) -> bool {
+    if i == nr.len() { return cur_val == wanted; }
+    ops.iter().filter_map(|op| op(cur_val, nr[i]))
+        .filter(|x| *x <= wanted)
+        .map(|x| check(wanted, nr, x, i+1, ops))
+        .any(|b| b)
 }
 
 fn main() {
@@ -45,12 +29,12 @@ fn main() {
     let solution: u64 = if !args.second {
         args.input.lines().filter_map(|l|{
             let (wanted, nr) = parse(l).unwrap();
-            part_1(wanted, &nr, nr[0], 1)
+            if check(wanted, &nr, nr[0], 1, &vec![Box::new(u64::checked_mul), Box::new(u64::checked_add)]) { Some(wanted) } else { None }
         }).sum()
     } else {
         args.input.lines().filter_map(|l|{
             let (wanted, nr) = parse(l).unwrap();
-            part_2(wanted, &nr, nr[0], 1)
+            if check(wanted, &nr, nr[0], 1, &vec![Box::new(u64::checked_mul), Box::new(u64::checked_add), Box::new(concat)]) { Some(wanted) } else { None }
         }).sum()
     };
 
