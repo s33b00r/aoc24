@@ -3,6 +3,7 @@ use cli::Args;
 use include_dir::{include_dir, Dir};
 
 mod cli;
+pub mod structs;
 
 pub static INPUTS: Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/inputs");
 
