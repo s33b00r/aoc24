@@ -61,10 +61,13 @@ fn main() {
         while let Some(p) = backtrace.pop_front() {
             seen_pos.insert(p.0);
             if p.0 == start { continue; }
-            for x in walked.keys().map(|x| *x).filter(|x| x.0 == (p.0.0 - p.1.0, p.0.1 - p.1.1)) {
-                if p.0.0 - x.0.0 == x.1.0 && p.0.1 - x.0.1 == x.1.1 {
-                    if walked.get(&p).unwrap() - 1 == *walked.get(&x).unwrap() { backtrace.push_back(x); }
-                } else if walked.get(&p).unwrap() - 1001 == *walked.get(&x).unwrap() { backtrace.push_back(x); }
+            let p_pos = (p.0.0 - p.1.0, p.0.1 - p.1.1);
+            for d in vec![(1, 0), (0, -1), (-1, 0), (0, 1)] {
+                if let Some(_) = walked.get(&(p_pos, d)) { 
+                    if p.0.0 - p_pos.0 == d.0 && p.0.1 - p_pos.1 == d.1 {
+                        if walked.get(&p).unwrap() - 1 == *walked.get(&(p_pos, d)).unwrap() { backtrace.push_back((p_pos, d)); }
+                    } else if walked.get(&p).unwrap() - 1001 == *walked.get(&(p_pos, d)).unwrap() { backtrace.push_back((p_pos, d)); }
+                }
             }
         }
         seen_pos.len() as i32
